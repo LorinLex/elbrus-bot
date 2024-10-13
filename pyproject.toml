@@ -8,6 +8,8 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.10"
 aiogram = "^3.13.1"
+pydantic-settings = "^2.5.2"
+aiogram-tests = "^1.0.3"
 
 [tool.poetry.group.dev.dependencies]
 mypy = "^1.11.2"
