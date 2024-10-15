@@ -6,7 +6,7 @@ from typing import final
 @final
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=('.prod.env', '.dev.env'),
+        env_file=('../.env'),
         env_file_encoding='utf-8'
     )
 
@@ -14,7 +14,7 @@ class Settings(BaseSettings):
 
     bot_token: str = ''
 
-    target_date: str = "1-08-2025"
+    target_date: str = "2025-08-01"
 
 
 @lru_cache()  # get it from memory
