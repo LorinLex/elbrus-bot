@@ -16,6 +16,8 @@ class Settings(BaseSettings):
 
     target_date: str = "2025-08-01"
 
+    sqlite_path: str = ""
+
 
 @lru_cache()  # get it from memory
 def get_settings() -> Settings:
