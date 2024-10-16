@@ -10,14 +10,20 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from app.handlers import router
 
 from app.settings import get_settings
+from app.db import create_tables
+from app.services import BoysService
 
 
 async def main() -> None:
     # Initialize Bot instance with default bot properties which will be passed to all API calls
-    bot = Bot(token=get_settings().bot_token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
-    
+    bot = Bot(token=get_settings().bot_token,
+              default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+
     dp = Dispatcher(storage=MemoryStorage())
     dp.include_router(router)
+
+    await create_tables()  # TODO: change to alembic
+    await BoysService.add_boys()
 
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)
