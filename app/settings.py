@@ -18,6 +18,8 @@ class Settings(BaseSettings):
 
     sqlite_path: str = ""
 
+    boys: list[dict[str, str]] = []
+
 
 @lru_cache()  # get it from memory
 def get_settings() -> Settings:
