@@ -4,7 +4,6 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import SportActivity, Boys
-from app.db import async_session
 
 from app.settings import get_settings
 
@@ -37,11 +36,14 @@ class BoysService:
 
 class SportService:
     @staticmethod
-    async def add_report(session: AsyncSession, tg_username: str, username: str, date: datetime.date) -> None:
-        boy_request = select(Boys).where(Boys.tg_username == (username))
-        boy = await session.execute(boy_request)
+    async def add_report(session: AsyncSession,
+                         tg_username: str,
+                         date: datetime.date) -> None:
+        boy_request = select(Boys.id).where(Boys.tg_username == (tg_username))
 
-        report = SportActivity(boy=boy, date=date)
+        report = SportActivity(boy=boy_request,
+                               report_date=date,
+                               report_week=date.isocalendar()[1])
 
         session.add(report)
         await session.commit()
