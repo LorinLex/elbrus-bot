@@ -99,6 +99,24 @@ async def write_report(call: CallbackQuery) -> None:
             )
 
 
+@router.message(F.text == "📋 Посмотреть успехи недели")
+@router.message(Command("get_week_stats"))
+async def show_week_success_handler(message: Message) -> None:
+    async with async_session() as session:
+        rows = await SportService.get_week_stats(session)
+        if len(rows) == 0:
+            await message.answer_photo(
+                photo=FSInputFile("static/arni_angry.webp"),
+                caption="На этой неделе не было Gym days... Не зли Арни, ходи в зал!")
+
+        answer = "\n".join([f'{html.bold(row[0])}: {row[1]}' for row in rows])
+
+        await message.answer_photo(
+            photo=FSInputFile("static/arni_old.webp"),
+            caption=f"На этой неделе Gym days:\n{answer}"
+        )
+
+
 @router.message()
 async def wtf_handler(message: Message) -> None:
     if message.chat.type == "private":

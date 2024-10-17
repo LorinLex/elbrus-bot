@@ -1,6 +1,6 @@
 import datetime
 
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import SportActivity, Boys
@@ -52,16 +52,13 @@ class SportService:
     async def get_week_stats(session: AsyncSession):
         week = datetime.date.today().isocalendar()[1]
 
-        week_reports = select(SportActivity).\
-            where(SportActivity.report_week == week).\
-            join(SportActivity.boy)
+        week_reports = select(
+                Boys.call_sign,
+                func.count(SportActivity.id).label("week_reports_count"))\
+            .join(SportActivity, isouter=True)\
+            .group_by(Boys.call_sign)\
+            .filter(or_(SportActivity.report_week == week,
+                        SportActivity.report_week.is_(None)))
 
-        query = select(
-            Boys.tg_username,
-            Boys.name,
-            func.count(Boys.id).label("week_reports_count")
-        ).from_statement(week_reports)
-
-        week_stats = (await session.execute(query)).scalars()
-
+        week_stats = (await session.execute(week_reports)).all()
         return week_stats
