@@ -10,20 +10,34 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from app.handlers import router
 
 from app.settings import get_settings
-from app.db import create_tables
+from app.db import create_tables, async_session
 from app.services import BoysService
+from aiogram.types import BotCommand, BotCommandScopeDefault
+
+
+async def set_commands(bot: Bot):
+    commands = [
+        BotCommand(command='start', description='Старт'),
+        BotCommand(command='add_sport_report',
+                   description="Записать день Gym'а"),
+        BotCommand(command='remaining_time',
+                   description='Узнать сколько осталось до Эльбруса'),
+    ]
+    await bot.set_my_commands(commands, BotCommandScopeDefault())
 
 
 async def main() -> None:
     # Initialize Bot instance with default bot properties which will be passed to all API calls
-    bot = Bot(token=get_settings().bot_token,
-              default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+    bot: Bot = Bot(token=get_settings().bot_token,
+                   default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 
+    await set_commands(bot)
     dp = Dispatcher(storage=MemoryStorage())
     dp.include_router(router)
 
     await create_tables()  # TODO: change to alembic
-    await BoysService.add_boys()
+    async with async_session() as session:
+        await BoysService.add_boys(session)
 
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)
