@@ -62,3 +62,18 @@ class SportService:
 
         week_stats = (await session.execute(week_reports)).all()
         return week_stats
+
+    @staticmethod
+    async def get_month_stats(session: AsyncSession):
+        month = datetime.date.today().month
+
+        week_reports = select(
+                Boys.call_sign,
+                func.count(SportActivity.id).label("week_reports_count"))\
+            .join(SportActivity, isouter=True)\
+            .group_by(Boys.call_sign)\
+            .filter(or_(func.strftime("%m", SportActivity.report_date) == str(month),
+                        SportActivity.report_date.is_(None)))
+
+        week_stats = (await session.execute(week_reports)).all()
+        return week_stats

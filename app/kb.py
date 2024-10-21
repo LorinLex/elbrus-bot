@@ -10,6 +10,7 @@ def main_kb() -> ReplyKeyboardMarkup:
     kb_list = [
         [KeyboardButton(text="🏋️ Похвастаться днем Gym'а")],
         [KeyboardButton(text="📋 Посмотреть успехи недели")],
+        [KeyboardButton(text="📋 Посмотреть успехи месяца")],
         [KeyboardButton(text="🧗‍♂️ Сколько осталось до Эльбруса?")]
     ]
     return ReplyKeyboardMarkup(

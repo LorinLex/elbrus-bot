@@ -20,6 +20,10 @@ async def set_commands(bot: Bot):
         BotCommand(command='start', description='Старт'),
         BotCommand(command='add_sport_report',
                    description="Записать день Gym'а"),
+        BotCommand(command='get_week_stats',
+                   description="Посмотреть успехи недели"),
+        BotCommand(command='get_month_stats',
+                   description="Посмотреть успехи месяца"),
         BotCommand(command='remaining_time',
                    description='Узнать сколько осталось до Эльбруса'),
     ]

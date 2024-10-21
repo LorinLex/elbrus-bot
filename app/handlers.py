@@ -95,7 +95,8 @@ async def write_report(call: CallbackQuery) -> None:
                 photo=FSInputFile("static/arni.jpeg"),
                 caption=f"Так и записал: {boy.name} был в Gym'е"
                         f" {call.data[4::]} числа этого месяца.\n"
-                        f"Так держать, бро! Арни гордится тобой!"
+                        f"Так держать, бро! Арни гордится тобой!",
+                reply_markup=main_kb()
             )
 
 
@@ -107,17 +108,44 @@ async def show_week_success_handler(message: Message) -> None:
         if len(rows) == 0:
             await message.answer_photo(
                 photo=FSInputFile("static/arni_angry.webp"),
-                caption="На этой неделе не было Gym days... Не зли Арни, ходи в зал!")
+                caption="На этой неделе не было Gym days... Не зли Арни, ходи в зал!",
+                reply_markup=main_kb()
+            )
 
         answer = "\n".join([f'{html.bold(row[0])}: {row[1]}' for row in rows])
 
         await message.answer_photo(
             photo=FSInputFile("static/arni_old.webp"),
-            caption=f"На этой неделе Gym days:\n{answer}"
+            caption=f"На этой неделе Gym days:\n{answer}",
+            reply_markup=main_kb()
+        )
+
+
+@router.message(F.text == "📋 Посмотреть успехи месяца")
+@router.message(Command("get_month_stats"))
+async def show_month_success_handler(message: Message) -> None:
+    async with async_session() as session:
+        rows = await SportService.get_month_stats(session)
+        if len(rows) == 0:
+            await message.answer_photo(
+                photo=FSInputFile("static/arni_angry.webp"),
+                caption="В том месяце  не было Gym days... Не зли Арни, ходи в зал!",
+                reply_markup=main_kb()
+            )
+
+        answer = "\n".join([f'{html.bold(row[0])}: {row[1]}' for row in rows])
+
+        await message.answer_photo(
+            photo=FSInputFile("static/arni_old.webp"),
+            caption=f"В этом месяце Gym days:\n{answer}",
+            reply_markup=main_kb()
         )
 
 
 @router.message()
 async def wtf_handler(message: Message) -> None:
     if message.chat.type == "private":
-        await message.answer("Моя твоя не понимать")
+        await message.answer(
+            "Моя твоя не понимать",
+            reply_markup=main_kb()
+        )
