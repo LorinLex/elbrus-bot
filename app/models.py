@@ -25,4 +25,5 @@ class SportActivity(Base):
     boy: Mapped["Boys"] = mapped_column(ForeignKey("Boys.id"))
     report_date: Mapped[date]
     report_week: Mapped[int]
+    distance: Mapped[float]
     create_date: Mapped[datetime] = mapped_column(server_default=func.now())

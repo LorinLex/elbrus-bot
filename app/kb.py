@@ -1,9 +1,8 @@
 import datetime
 from calendar import monthrange
-from typing import Callable
 from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from aiogram.utils.keyboard import ReplyKeyboardBuilder, InlineKeyboardBuilder
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 
 def main_kb() -> ReplyKeyboardMarkup:
@@ -49,6 +48,39 @@ def month_kb() -> InlineKeyboardMarkup:
             builder.add(InlineKeyboardButton(text=" ",
                                              callback_data="day_empty"))
 
-    builder.adjust(1, 7)
+    builder.add(InlineKeyboardButton(text="❌ Отмена ❌",
+                                     callback_data="fsm_stop"))
+    #  WARNING: Если февраль начинается с пн, и год не високосный
+    # - может не красиво отобразиться
+    builder.adjust(1, 7, 7, 7, 7, 7, 1)
 
     return builder.as_markup()
+
+
+def confirm_inline_kb() -> InlineKeyboardMarkup:
+    kb_list = [
+        [
+            InlineKeyboardButton(text="✅ Да", callback_data="confirm_yes"),
+            InlineKeyboardButton(text="⛔️ Нет", callback_data="confirm_no")
+        ],
+        [InlineKeyboardButton(text="❌ Отмена ❌", callback_data="fsm_stop")]
+    ]
+
+    return InlineKeyboardMarkup(
+        inline_keyboard=kb_list,
+        resize_keyboard=True,
+        one_time_keyboard=True,
+        input_field_placeholder="Воспользуйся меню"
+    )
+
+
+def stop_fsm_inline_kb() -> InlineKeyboardMarkup:
+    kb_list = [
+        [InlineKeyboardButton(text="❌ Отмена ❌", callback_data="fsm_stop")],
+    ]
+
+    return InlineKeyboardMarkup(
+        inline_keyboard=kb_list,
+        resize_keyboard=True,
+        one_time_keyboard=True
+    )

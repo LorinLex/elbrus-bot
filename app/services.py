@@ -8,6 +8,9 @@ from app.models import SportActivity, Boys
 from app.settings import get_settings
 
 
+ELBRUS_HEIGHT: float = 5.642
+
+
 class BoysService:
     @staticmethod
     async def add_boys(session: AsyncSession) -> None:
@@ -38,12 +41,14 @@ class SportService:
     @staticmethod
     async def add_report(session: AsyncSession,
                          tg_username: str,
-                         date: datetime.date) -> None:
+                         date: datetime.date,
+                         distance: float) -> None:
         boy_request = select(Boys.id).where(Boys.tg_username == (tg_username))
 
         report = SportActivity(boy=boy_request,
                                report_date=date,
-                               report_week=date.isocalendar()[1])
+                               report_week=date.isocalendar()[1],
+                               distance=distance)
 
         session.add(report)
         await session.commit()
@@ -54,14 +59,16 @@ class SportService:
 
         week_reports = select(
                 Boys.call_sign,
-                func.count(SportActivity.id).label("week_reports_count"))\
+                func.count(SportActivity.id).label("reports_count"),
+                func.coalesce(func.sum(SportActivity.distance), 0)
+                    .label("sum_distance"))\
             .join(SportActivity, isouter=True)\
             .group_by(Boys.call_sign)\
             .filter(or_(SportActivity.report_week == week,
                         SportActivity.report_week.is_(None)))
 
-        week_stats = (await session.execute(week_reports)).all()
-        return week_stats
+        result = (await session.execute(week_reports)).all()
+        return [row._mapping for row in result]
 
     @staticmethod
     async def get_month_stats(session: AsyncSession):
@@ -69,11 +76,18 @@ class SportService:
 
         week_reports = select(
                 Boys.call_sign,
-                func.count(SportActivity.id).label("week_reports_count"))\
+                func.count(SportActivity.id).label("reports_count"),
+                func.sum(SportActivity.distance).label("sum_distance"))\
             .join(SportActivity, isouter=True)\
             .group_by(Boys.call_sign)\
-            .filter(or_(func.strftime("%m", SportActivity.report_date) == str(month),
-                        SportActivity.report_date.is_(None)))
+            .filter(or_(
+                func.strftime("%m", SportActivity.report_date) == str(month),
+                SportActivity.report_date.is_(None)
+            ))
 
-        week_stats = (await session.execute(week_reports)).all()
-        return week_stats
+        result = (await session.execute(week_reports)).all()
+        return [row._mapping for row in result]
+
+    @staticmethod
+    def in_elbrus_height(dist: float | int) -> float:
+        return round(dist / ELBRUS_HEIGHT * 100, 2)
