@@ -77,7 +77,8 @@ class SportService:
         week_reports = select(
                 Boys.call_sign,
                 func.count(SportActivity.id).label("reports_count"),
-                func.sum(SportActivity.distance).label("sum_distance"))\
+                func.coalesce(func.sum(SportActivity.distance), 0)
+                    .label("sum_distance"))\
             .join(SportActivity, isouter=True)\
             .group_by(Boys.call_sign)\
             .filter(or_(

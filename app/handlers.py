@@ -1,18 +1,17 @@
 import datetime
-from functools import reduce
 import re
 
-from aiogram import html, F
+from aiogram import html, F, Router
 from aiogram.filters import Command, CommandStart
+from aiogram.fsm.context import FSMContext
+from aiogram.methods import DeleteMessages
 from aiogram.types import Message, CallbackQuery, InaccessibleMessage, \
     FSInputFile
-from aiogram import Router
 
-from app.kb import confirm_inline_kb, main_kb, month_kb, stop_fsm_inline_kb
-from aiogram.fsm.context import FSMContext
-from app.services import BoysService, SportService
-from app.settings import get_settings
+from app.app import settings, bot
 from app.db import async_session
+from app.kb import confirm_inline_kb, main_kb, month_kb, stop_fsm_inline_kb
+from app.services import BoysService, SportService
 from app.states import AddSportReportStates
 
 
@@ -34,7 +33,7 @@ async def start_handler(message: Message) -> None:
 @router.message(Command("remaining_time"))
 @router.message(F.text == '🧗‍♂️ Сколько осталось до Эльбруса?')
 async def remaining_time_handler(message: Message) -> None:
-    target_date = datetime.date.fromisoformat(get_settings().target_date)
+    target_date = datetime.date.fromisoformat(settings.target_date)
     remaining_time = target_date - datetime.date.today()
     await message.answer(
         f"Осталось дней: {html.bold(str(remaining_time.days))}",
@@ -90,7 +89,10 @@ async def write_day(call: CallbackQuery, state: FSMContext) -> None:
 @router.message(AddSportReportStates.distance)
 async def write_distance(message: Message, state: FSMContext) -> None:
     tg_user = message.from_user
-    await message.delete()
+    await DeleteMessages(
+        chat_id=message.chat.id,
+        message_ids=[message.message_id, message.message_id-1]
+    ).as_(bot=bot)
 
     if message.text is None:
         await message.answer("Что-то пошло не так:(",
@@ -162,6 +164,7 @@ async def write_report(call: CallbackQuery, state: FSMContext) -> None:
 
         if call.message is not None\
                 and not isinstance(call.message, InaccessibleMessage):
+            await call.message.delete()
             await call.message.answer_photo(
                 photo=FSInputFile("static/arni.jpeg"),
                 caption=(
@@ -182,6 +185,9 @@ async def retry_add_sport_report_handler(call: CallbackQuery,
         await call.answer("Что-то пошло не так:(")
         return
 
+    if not isinstance(call.message, InaccessibleMessage):
+        await call.message.delete()
+
     await state.clear()
     await state.set_state(AddSportReportStates.day)
     await call.message.answer("Бро, заново выбери день:",
@@ -200,7 +206,6 @@ async def show_week_success_handler(message: Message) -> None:
                 reply_markup=main_kb()
             )
 
-        # stats = "\n".join([f'{html.bold(row[0])}: {row[1]}' for row in rows])
         stats = "".join([
             f"{html.bold(row.call_sign)}: {row.reports_count}, "
             f"прошел {html.bold(row.sum_distance)}км ИЛИ "
@@ -246,6 +251,8 @@ async def show_month_success_handler(message: Message) -> None:
         )
 
 
+@router.callback_query(AddSportReportStates.day, F.data == "fsm_stop")
+@router.callback_query(AddSportReportStates.distance, F.data == "fsm_stop")
 @router.callback_query(AddSportReportStates.confirm, F.data == "fsm_stop")
 async def fsm_stop_handler(call: CallbackQuery, state: FSMContext) -> None:
     if call.message is None or isinstance(call.message, InaccessibleMessage):
