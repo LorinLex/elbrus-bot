@@ -21,6 +21,6 @@ class Settings(BaseSettings):
     boys: list[dict[str, str]] = []
 
 
-@lru_cache()  # get it from memory
+@lru_cache()
 def get_settings() -> Settings:
     return Settings()

@@ -2,20 +2,14 @@ import asyncio
 import logging
 import sys
 
-from aiogram import Bot, Dispatcher
-from aiogram.client.default import DefaultBotProperties
-from aiogram.enums import ParseMode
-from aiogram.fsm.storage.memory import MemoryStorage
-
 from app.handlers import router
-
-from app.settings import get_settings
 from app.db import create_tables, async_session
 from app.services import BoysService
+from app.app import bot, dp, settings
 from aiogram.types import BotCommand, BotCommandScopeDefault
 
 
-async def set_commands(bot: Bot):
+async def set_commands():
     commands = [
         BotCommand(command='start', description='Старт'),
         BotCommand(command='add_sport_report',
@@ -30,23 +24,25 @@ async def set_commands(bot: Bot):
     await bot.set_my_commands(commands, BotCommandScopeDefault())
 
 
-async def main() -> None:
-    # Initialize Bot instance with default bot properties which will be passed to all API calls
-    bot: Bot = Bot(token=get_settings().bot_token,
-                   default=DefaultBotProperties(parse_mode=ParseMode.HTML))
-
-    await set_commands(bot)
-    dp = Dispatcher(storage=MemoryStorage())
-    dp.include_router(router)
-
-    await create_tables()  # TODO: change to alembic
+async def start_bot():
+    await set_commands()
+    await create_tables()
     async with async_session() as session:
         await BoysService.add_boys(session)
+
+
+async def main() -> None:
+    dp.include_router(router)
+    dp.startup.register(start_bot)
 
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO, stream=sys.stdout)
+    logging.basicConfig(
+        level=logging.DEBUG if settings.debug else logging.INFO,
+        format='%(asctime)s:%(levelname)s:%(name)s - %(message)s',
+        stream=sys.stdout
+    )
     asyncio.run(main())
