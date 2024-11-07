@@ -2,10 +2,11 @@ import asyncio
 import logging
 import sys
 
+from app.dal import add_boys
 from app.handlers import router
-from app.db import create_tables, async_session
-from app.services import BoysService
+from app.middlewares import ManCheckingMiddleware
 from app.app import bot, dp, settings
+from app.db import db_manager
 from aiogram.types import BotCommand, BotCommandScopeDefault
 
 
@@ -26,14 +27,14 @@ async def set_commands():
 
 async def start_bot():
     await set_commands()
-    await create_tables()
-    async with async_session() as session:
-        await BoysService.add_boys(session)
+    await db_manager.init_models()
+    await add_boys()
 
 
 async def main() -> None:
     dp.include_router(router)
     dp.startup.register(start_bot)
+    dp.message.middleware.register(ManCheckingMiddleware())
 
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)

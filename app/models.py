@@ -8,21 +8,21 @@ from sqlalchemy.orm import relationship
 from app.db import Base
 
 
-class Boys(Base):
-    __tablename__ = "Boys"
+class BoyModel(Base):
+    __tablename__ = "BoyModel"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str]
     call_sign: Mapped[str]
     tg_username: Mapped[str]
-    sport_activity: Mapped[list["SportActivity"]] = relationship()
+    sport_activity: Mapped[list["SportActivityModel"]] = relationship()
 
 
-class SportActivity(Base):
-    __tablename__ = "SportActivity"
+class SportActivityModel(Base):
+    __tablename__ = "SportActivityModel"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    boy: Mapped["Boys"] = mapped_column(ForeignKey("Boys.id"))
+    boy: Mapped["BoyModel"] = mapped_column(ForeignKey("BoyModel.id"))
     report_date: Mapped[date]
     report_week: Mapped[int]
     distance: Mapped[float]

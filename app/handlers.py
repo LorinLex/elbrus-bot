@@ -9,10 +9,10 @@ from aiogram.types import Message, CallbackQuery, InaccessibleMessage, \
     FSInputFile
 
 from app.app import settings, bot
-from app.db import async_session
+from app.dal import Boy, add_report, get_month_stats, get_week_stats
 from app.kb import confirm_inline_kb, main_kb, month_kb, stop_fsm_inline_kb
-from app.services import BoysService, SportService
 from app.states import AddSportReportStates
+from app.utils import in_elbrus_height
 
 
 router = Router()
@@ -20,14 +20,11 @@ router = Router()
 
 @router.message(CommandStart())
 @router.message(F.text == '🏠 Главное меню')
-async def start_handler(message: Message) -> None:
-    if message.from_user is not None:
-        await message.answer(
-            f"Салют, боутишка {html.bold(message.from_user.first_name)}!",
-            reply_markup=main_kb()
-        )
-    else:
-        await message.answer("Салют, боутишка!", reply_markup=main_kb())
+async def start_handler(message: Message, boy: Boy) -> None:
+    await message.answer(
+        f"Салют, боутишка {html.bold(boy.call_sign)}!",
+        reply_markup=main_kb()
+    )
 
 
 @router.message(Command("remaining_time"))
@@ -43,17 +40,9 @@ async def remaining_time_handler(message: Message) -> None:
 
 @router.message(Command("add_sport_report"))
 @router.message(F.text == "🏋️ Похвастаться днем Gym'а")
-async def add_sport_report_handler(message: Message, state: FSMContext) -> None:
+async def add_sport_report_handler(message: Message,
+                                   state: FSMContext) -> None:
     await state.clear()
-    tg_user = message.from_user
-    async with async_session() as session:
-        if tg_user is None\
-                or tg_user.username is None\
-                or await BoysService.get_boy(session,
-                                             tg_user.username) is None:
-            await message.answer("Ты не в списке!!1!!1!")
-            return
-
     await message.answer("Бро, выбери день:", reply_markup=month_kb())
     await state.set_state(AddSportReportStates.day)
 
@@ -76,6 +65,7 @@ async def write_day(call: CallbackQuery, state: FSMContext) -> None:
             reply_markup=month_kb()
         )
         return
+
     await state.set_data({"date": call.data[4::]})
     await state.set_state(AddSportReportStates.distance)
     await call.message.answer(
@@ -87,8 +77,9 @@ async def write_day(call: CallbackQuery, state: FSMContext) -> None:
 
 
 @router.message(AddSportReportStates.distance)
-async def write_distance(message: Message, state: FSMContext) -> None:
-    tg_user = message.from_user
+async def write_distance(message: Message,
+                         boy: Boy,
+                         state: FSMContext) -> None:
     await DeleteMessages(
         chat_id=message.chat.id,
         message_ids=[message.message_id, message.message_id-1]
@@ -106,76 +97,52 @@ async def write_distance(message: Message, state: FSMContext) -> None:
                              reply_markup=stop_fsm_inline_kb())
         return
 
-    async with async_session() as session:
-        if tg_user is None\
-                or tg_user.username is None:
-            await message.answer("Ты не в списке!!1!!1!")
-            return
+    report = await state.get_data()
+    if message.text is not None:
+        await state.set_data({**report, "distance": message.text})
 
-        boy = await BoysService.get_boy(session, tg_user.username)
-
-        if boy is None:
-            await message.answer("Ты не в списке!!1!!1!")
-            return
-
-        report = await state.get_data()
-        if message.text is not None:
-            await state.set_data({**report, "distance": message.text})
-
-        await state.set_state(AddSportReportStates.confirm)
-        await message.answer(
-            text=(
-                f"Значит {html.bold(boy.name)} был в Gym'е "
-                f"{html.bold(report['date'])} числа этого месяца, и преодолел "
-                f"{html.bold(message.text)}км.\n"
-                "Все верно?"
-            ),
-            reply_markup=confirm_inline_kb()
-        )
+    await state.set_state(AddSportReportStates.confirm)
+    await message.answer(
+        text=(
+            f"Значит {html.bold(boy.call_sign)} был в Gym'е "
+            f"{html.bold(report['date'])} числа этого месяца, и преодолел "
+            f"{html.bold(message.text)}км.\n"
+            "Все верно?"
+        ),
+        reply_markup=confirm_inline_kb()
+    )
 
 
 @router.callback_query(AddSportReportStates.confirm, F.data == "confirm_yes")
-async def write_report(call: CallbackQuery, state: FSMContext) -> None:
-    tg_user = call.from_user
-    async with async_session() as session:
-        if tg_user is None\
-                or tg_user.username is None:
-            await call.answer("Ты не в списке!!1!!1!")
-            return
+async def write_report(call: CallbackQuery,
+                       boy: Boy,
+                       state: FSMContext) -> None:
+    report = await state.get_data()
+    today = datetime.date.today()
 
-        boy = await BoysService.get_boy(session, tg_user.username)
+    await add_report(
+        tg_username=boy.tg_username,
+        date=datetime.date(today.year, today.month, int(report["date"])),
+        distance=float(report["distance"])
+    )
 
-        if boy is None:
-            await call.answer("Ты не в списке!!1!!1!")
-            return
+    await state.clear()
+    await call.answer("Gym-day записан, бро!", reply_markup=main_kb())
 
-        report = await state.get_data()
-        today = datetime.date.today()
-
-        await SportService.add_report(
-            session,
-            tg_username=tg_user.username,
-            date=datetime.date(today.year, today.month, int(report["date"])),
-            distance=float(report["distance"])
+    if call.message is not None\
+            and not isinstance(call.message, InaccessibleMessage):
+        await call.message.delete()
+        await call.message.answer_photo(
+            photo=FSInputFile("static/arni.jpeg"),
+            caption=(
+                "Так и записал:\n"
+                f"{html.bold(boy.name)} был в Gym'е "
+                f"{html.bold(report['date'])} числа этого месяца и "
+                f"преодолел {html.bold(report['distance'])}км.\n"
+                "Так держать, бро! Арни гордится тобой!"
+            ),
+            reply_markup=main_kb()
         )
-
-        await state.clear()
-        await call.answer("Gym-day записан, бро!", reply_markup=main_kb())
-
-        if call.message is not None\
-                and not isinstance(call.message, InaccessibleMessage):
-            await call.message.delete()
-            await call.message.answer_photo(
-                photo=FSInputFile("static/arni.jpeg"),
-                caption=(
-                    "Так и записал:\n"
-                    f"{html.bold(boy.name)} был в Gym'е "
-                    f"{html.bold(report['date'])} числа этого месяца и "
-                    f"преодолел {html.bold(report['distance'])}км.\n"
-                    "Так держать, бро! Арни гордится тобой!"
-                ),
-                reply_markup=main_kb()
-            )
 
 
 @router.callback_query(AddSportReportStates.confirm, F.data == "confirm_no")
@@ -197,58 +164,58 @@ async def retry_add_sport_report_handler(call: CallbackQuery,
 @router.message(F.text == "📋 Посмотреть успехи недели")
 @router.message(Command("get_week_stats"))
 async def show_week_success_handler(message: Message) -> None:
-    async with async_session() as session:
-        rows = await SportService.get_week_stats(session)
-        if len(rows) == 0:
-            await message.answer_photo(
-                photo=FSInputFile("static/arni_angry.webp"),
-                caption="На этой неделе не было Gym days... Не зли Арни, ходи в зал!",
-                reply_markup=main_kb()
-            )
-
-        stats = "".join([
-            f"{html.bold(row.call_sign)}: {row.reports_count}, "
-            f"прошел {html.bold(row.sum_distance)}км ИЛИ "
-            f"{SportService.in_elbrus_height(row.sum_distance)}% "
-            "высоты Эльбруса\n"
-            for row in rows
-        ])
-
+    rows = await get_week_stats()
+    if len(rows) == 0:
         await message.answer_photo(
-            photo=FSInputFile("static/arni_old.webp"),
-            caption=f"На этой неделе Gym days:\n{stats}",
+            photo=FSInputFile("static/arni_angry.webp"),
+            caption="На этой неделе не было Gym days... "
+                    "Не зли Арни, ходи в зал!",
             reply_markup=main_kb()
         )
-        await message.answer(
-            "P.S. Дистанция от Эльбруса считается по прямой, перпендикулярной "
-            "центру земли, маршрут кратно больше!"
-        )
+
+    stats = "".join([
+        f"{html.bold(row.call_sign)}: {row.reports_count}, "
+        f"прошел {html.bold(str(row.sum_distance))}км ИЛИ "
+        f"{in_elbrus_height(row.sum_distance)}% "
+        "высоты Эльбруса\n"
+        for row in rows
+    ])
+
+    await message.answer_photo(
+        photo=FSInputFile("static/arni_old.webp"),
+        caption=f"На этой неделе Gym days:\n{stats}",
+        reply_markup=main_kb()
+    )
+    await message.answer(
+        "P.S. Дистанция от Эльбруса считается по прямой, перпендикулярной "
+        "центру земли, маршрут кратно больше!"
+    )
 
 
 @router.message(F.text == "📋 Посмотреть успехи месяца")
 @router.message(Command("get_month_stats"))
 async def show_month_success_handler(message: Message) -> None:
-    async with async_session() as session:
-        rows = await SportService.get_month_stats(session)
-        if len(rows) == 0:
-            await message.answer_photo(
-                photo=FSInputFile("static/arni_angry.webp"),
-                caption="В этом месяце не было Gym days... Не зли Арни, ходи в зал!",
-                reply_markup=main_kb()
-            )
-
-        stats = "".join([
-            f"{html.bold(row.call_sign)}: {row.reports_count}, "
-            f"прошел {html.bold(row.sum_distance)}км ИЛИ "
-            f"{SportService.in_elbrus_height(row.sum_distance)}% "
-            "высоты Эльбруса\n"
-            for row in rows
-        ])
+    rows = await get_month_stats()
+    if len(rows) == 0:
         await message.answer_photo(
-            photo=FSInputFile("static/arni_old.webp"),
-            caption=f"В этом месяце Gym days:\n{stats}",
+            photo=FSInputFile("static/arni_angry.webp"),
+            caption="В этом месяце не было Gym days... "
+                    "Не зли Арни, ходи в зал!",
             reply_markup=main_kb()
         )
+
+    stats = "".join([
+        f"{html.bold(row.call_sign)}: {row.reports_count}, "
+        f"прошел {html.bold(str(row.sum_distance))}км ИЛИ "
+        f"{in_elbrus_height(row.sum_distance)}% "
+        "высоты Эльбруса\n"
+        for row in rows
+    ])
+    await message.answer_photo(
+        photo=FSInputFile("static/arni_old.webp"),
+        caption=f"В этом месяце Gym days:\n{stats}",
+        reply_markup=main_kb()
+    )
 
 
 @router.callback_query(AddSportReportStates.day, F.data == "fsm_stop")
