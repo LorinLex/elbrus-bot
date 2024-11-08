@@ -78,8 +78,8 @@ async def write_day(call: CallbackQuery, state: FSMContext) -> None:
 
 @router.message(AddSportReportStates.distance)
 async def write_distance(message: Message,
-                         boy: Boy,
-                         state: FSMContext) -> None:
+                         state: FSMContext,
+                         boy: Boy) -> None:
     await DeleteMessages(
         chat_id=message.chat.id,
         message_ids=[message.message_id, message.message_id-1]
@@ -115,8 +115,8 @@ async def write_distance(message: Message,
 
 @router.callback_query(AddSportReportStates.confirm, F.data == "confirm_yes")
 async def write_report(call: CallbackQuery,
-                       boy: Boy,
-                       state: FSMContext) -> None:
+                       state: FSMContext,
+                       boy: Boy) -> None:
     report = await state.get_data()
     today = datetime.date.today()
 

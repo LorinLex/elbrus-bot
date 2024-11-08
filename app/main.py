@@ -35,6 +35,7 @@ async def main() -> None:
     dp.include_router(router)
     dp.startup.register(start_bot)
     dp.message.middleware.register(ManCheckingMiddleware())
+    dp.callback_query.middleware.register(ManCheckingMiddleware())
 
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)
