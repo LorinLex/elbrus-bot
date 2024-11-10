@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession, \
     AsyncAttrs, create_async_engine, AsyncEngine
 from sqlalchemy.orm import DeclarativeBase
 
-from app.settings import get_settings
+from app import settings
 
 import logging
 
@@ -22,7 +22,7 @@ class DBManager:
     session_factory: async_sessionmaker[AsyncSession]
 
     def __init__(self) -> None:
-        self.engine = create_async_engine(get_settings().sqlite_path)
+        self.engine = create_async_engine(settings.sqlite_path)
         self.session_factory = async_sessionmaker(
             self.engine,
             expire_on_commit=False

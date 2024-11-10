@@ -5,7 +5,7 @@ import sys
 from app.dal import add_boys
 from app.handlers import router
 from app.middlewares import ManCheckingMiddleware
-from app.app import bot, dp, settings
+from app import bot, dp, settings
 from app.db import db_manager
 from aiogram.types import BotCommand, BotCommandScopeDefault
 

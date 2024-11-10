@@ -8,7 +8,7 @@ from aiogram.methods import DeleteMessages
 from aiogram.types import Message, CallbackQuery, InaccessibleMessage, \
     FSInputFile
 
-from app.app import settings, bot
+from app import settings, bot
 from app.dal import Boy, add_report, get_month_stats, get_week_stats
 from app.kb import confirm_inline_kb, main_kb, month_kb, stop_fsm_inline_kb
 from app.states import AddSportReportStates
