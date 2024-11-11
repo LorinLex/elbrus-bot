@@ -32,7 +32,7 @@ async def start_bot():
 
 
 async def main() -> None:
-    dp.include_routers(main_router, sport_router)
+    dp.include_routers(sport_router, main_router)
     dp.startup.register(start_bot)
     dp.message.middleware.register(ManCheckingMiddleware())
     dp.callback_query.middleware.register(ManCheckingMiddleware())
