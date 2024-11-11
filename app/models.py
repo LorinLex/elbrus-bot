@@ -54,3 +54,7 @@ class EventModel(Base):
         secondary=BoyEventModel,
         back_populates="events"
     )
+    author: Mapped["BoyModel"] = mapped_column(ForeignKey("BoyModel.id"))
+    is_notified_time_left: Mapped[bool] = mapped_column(default=False)
+    is_repeatable: Mapped[bool] = mapped_column(default=False)
+    create_date: Mapped[datetime] = mapped_column(server_default=func.now())
