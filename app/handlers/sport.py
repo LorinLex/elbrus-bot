@@ -2,13 +2,13 @@ import datetime
 import re
 
 from aiogram import html, F, Router
-from aiogram.filters import Command, CommandStart
+from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.methods import DeleteMessages
 from aiogram.types import Message, CallbackQuery, InaccessibleMessage, \
     FSInputFile
 
-from app import settings, bot
+from app import bot
 from app.dal import Boy, add_report, get_month_stats, get_week_stats
 from app.kb import confirm_inline_kb, main_kb, month_kb, stop_fsm_inline_kb
 from app.states import AddSportReportStates
@@ -16,26 +16,6 @@ from app.utils import in_elbrus_height
 
 
 router = Router()
-
-
-@router.message(CommandStart())
-@router.message(F.text == '🏠 Главное меню')
-async def start_handler(message: Message, boy: Boy) -> None:
-    await message.answer(
-        f"Салют, боутишка {html.bold(boy.call_sign)}!",
-        reply_markup=main_kb()
-    )
-
-
-@router.message(Command("remaining_time"))
-@router.message(F.text == '🧗‍♂️ Сколько осталось до Эльбруса?')
-async def remaining_time_handler(message: Message) -> None:
-    target_date = datetime.date.fromisoformat(settings.target_date)
-    remaining_time = target_date - datetime.date.today()
-    await message.answer(
-        f"Осталось дней: {html.bold(str(remaining_time.days))}",
-        reply_markup=main_kb(),
-    )
 
 
 @router.message(Command("add_sport_report"))
@@ -232,12 +212,3 @@ async def fsm_stop_handler(call: CallbackQuery, state: FSMContext) -> None:
         text="Окей, ты вернулся в главное меню",
         reply_markup=main_kb()
     )
-
-
-@router.message()
-async def wtf_handler(message: Message) -> None:
-    if message.chat.type == "private":
-        await message.answer(
-            "Моя твоя не понимать",
-            reply_markup=main_kb()
-        )
