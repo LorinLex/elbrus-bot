@@ -3,7 +3,7 @@ import logging
 import sys
 
 from app.dal import add_boys
-from app.handlers import main_router, sport_router
+from app.handlers import main_router, sport_router, event_router
 from app.middlewares import ManCheckingMiddleware
 from app import bot, dp, settings
 from app.db import db_manager
@@ -15,6 +15,8 @@ async def set_commands():
         BotCommand(command='start', description='Старт'),
         BotCommand(command='add_sport_report',
                    description="Записать день Gym'а"),
+        BotCommand(command='add_event',
+                   description="Добавить событие"),
         BotCommand(command='get_week_stats',
                    description="Посмотреть успехи недели"),
         BotCommand(command='get_month_stats',
@@ -32,7 +34,7 @@ async def start_bot():
 
 
 async def main() -> None:
-    dp.include_routers(sport_router, main_router)
+    dp.include_routers(sport_router, event_router, main_router)
     dp.startup.register(start_bot)
     dp.message.middleware.register(ManCheckingMiddleware())
     dp.callback_query.middleware.register(ManCheckingMiddleware())

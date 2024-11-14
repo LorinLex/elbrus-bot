@@ -8,6 +8,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 def main_kb() -> ReplyKeyboardMarkup:
     kb_list = [
         [KeyboardButton(text="🏋️ Похвастаться днем Gym'а")],
+        [KeyboardButton(text="Добавить событие")],
         [KeyboardButton(text="📋 Посмотреть успехи недели")],
         [KeyboardButton(text="📋 Посмотреть успехи месяца")],
         [KeyboardButton(text="🧗‍♂️ Сколько осталось до Эльбруса?")]
@@ -83,4 +84,48 @@ def stop_fsm_inline_kb() -> InlineKeyboardMarkup:
         inline_keyboard=kb_list,
         resize_keyboard=True,
         one_time_keyboard=True
+    )
+
+
+def confirm_event_inline_kb() -> InlineKeyboardMarkup:
+    kb_list = [
+        [InlineKeyboardButton(
+            text="Изменить имя",
+            callback_data="update_name"
+        )],
+        [InlineKeyboardButton(
+            text="Изменить картинку",
+            callback_data="update_image"
+        )],
+        [InlineKeyboardButton(
+            text="Изменить описание",
+            callback_data="update_description"
+        )],
+        [InlineKeyboardButton(
+            text="Изменить дату начала",
+            callback_data="update_date_start"
+        )],
+        [InlineKeyboardButton(
+            text="Изменить продолжительность события",
+            callback_data="update_length"
+        )],
+        [InlineKeyboardButton(
+            text="Изменить уведомление",
+            callback_data="update_is_notified_time_left"
+        )],
+        [InlineKeyboardButton(
+            text="Изменить повторение",
+            callback_data="update_is_repeatable"
+        )],
+        [InlineKeyboardButton(
+            text="✅ Все верно!",
+            callback_data="confirm_yes")],
+        [InlineKeyboardButton(text="❌ Отмена ❌", callback_data="fsm_stop")]
+    ]
+
+    return InlineKeyboardMarkup(
+        inline_keyboard=kb_list,
+        resize_keyboard=True,
+        one_time_keyboard=True,
+        input_field_placeholder="Воспользуйся меню"
     )
