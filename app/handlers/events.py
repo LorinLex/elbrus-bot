@@ -1,19 +1,62 @@
 import re
-from datetime import datetime
+from datetime import datetime, date
+from dataclasses import asdict
+from typing import Optional
 
 from aiogram import html, F, Router
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.methods import DeleteMessages
 from aiogram.types import Message, CallbackQuery, InaccessibleMessage
+from app import bot
 from app.dal import Boy
-from app.dal.events import Event, add_event
+from app.dal.events import Event, add_event, get_event_list
 from app.kb import confirm_event_inline_kb, confirm_inline_kb, main_kb, \
     stop_fsm_inline_kb
 from app.states import CreateEventStates, FixEventStates
+from app.utils import bool2human
 
 
 router = Router()
+
+
+def get_event_caption(
+    name: str,
+    description: str,
+    date_start: date,
+    length: int,
+    author_call_sign: str,
+    is_notified_time_left: bool,
+    is_repeatable: bool,
+    **kwargs
+) -> str:
+    return (f"{html.bold(name)}\n\n"
+            f"{description}\n\n"
+            "Когда: "
+            f"{html.bold(date_start.strftime('%d.%m.%Y'))}\n"
+            "Длится (в днях): "
+            f"{html.bold(str(length))}\n"
+            "Писать оставшееся время: "
+            f"{html.bold(bool2human(is_notified_time_left))}\n"
+            "Повторяется каждый год: "
+            f"{html.bold(bool2human(is_repeatable))}\n"
+            "Автор:"
+            f"{html.bold(author_call_sign)}")
+
+
+@router.message(Command("show_events"))
+async def show_event_list_handler(message: Message,
+                                  state: FSMContext) -> None:
+    if message.text is None:
+        await message.answer("Что-то пошло не так:(")
+        return
+
+    event_list = await get_event_list()
+    for event in event_list:
+        await message.answer_photo(
+            photo=event.image,
+            caption=get_event_caption(**asdict(event))
+        )
 
 
 async def confirm_before_saving(message: Message, state: FSMContext) -> None:
@@ -21,29 +64,26 @@ async def confirm_before_saving(message: Message, state: FSMContext) -> None:
     await state.set_state(CreateEventStates.confirm)
 
     await message.answer(
-        text="Итак, проверь что мы тут с тобой написали:",
+        text="Проверяй",
     )
     await message.answer_photo(
         photo=state_data["image"],
-        caption=f"{html.bold(state_data['name'])}\n\n"
-                f"{state_data['description']}\n"
-                f"Когда: {html.bold(state_data['date_start'])}\n"
-                "Писать оставшееся время: "
-                f"{html.bold(state_data['is_notified_time_left'])}\n"
-                "Повторяется каждый год: "
-                f"{html.bold(state_data['is_repeatable'])}"
-    )
-    await message.answer(
-        text="Все верно?",
+        caption=get_event_caption(**state_data),
         reply_markup=confirm_event_inline_kb()
     )
 
 
 @router.message(Command("add_event"))
 @router.message(F.text == "Добавить событие")
-async def add_event_handler(message: Message, state: FSMContext) -> None:
+async def add_event_handler(message: Message,
+                            state: FSMContext,
+                            boy: Boy) -> None:
     await state.clear()
     await state.set_state(CreateEventStates.name)
+    await state.update_data(
+        author_call_sign=boy.call_sign,
+        start_message=message.message_id
+    )
     await message.answer(
         text="Круто, давай добавим новое событие!\n"
              "Напиши как оно называется",
@@ -129,16 +169,17 @@ async def add_event_date_start_handler(message: Message,
         )
         return
 
-    date = re.match(pattern=r'^\d\d\.\d\d\.\d\d\d\d$', string=message.text)
-
-    if date is None:
+    # date = re.match(pattern=r'^\d\d\.\d\d\.\d\d\d\d$', string=message.text)
+    try:
+        date = datetime.strptime(message.text, "%d.%m.%Y").date()
+    except ValueError:
         await message.answer(
             text="Ты ввел не правильно, попробуй еще раз",
             reply_markup=stop_fsm_inline_kb()
         )
         return
 
-    await state.update_data(date_start=message.text)
+    await state.update_data(date_start=date)
 
     current_state = await state.get_state()
     if current_state == FixEventStates.date_start:
@@ -279,21 +320,29 @@ async def add_event_confirm_handler(call: CallbackQuery,
 
     state_data = await state.get_data()
 
+    await bot.delete_messages(
+        chat_id=call.from_user.id,
+        message_ids=[*range(state_data["start_message"]+1,
+                            call.message.message_id+1)]
+    )
+
     new_event = Event(
         name=state_data["name"],
         description=state_data["description"],
-        date_start=datetime.strptime(
-            state_data["date_start"],
-            "%d.%m.%Y"
-        ).date(),
+        date_start=state_data["date_start"],
         length=state_data["length"],
-        author=boy,
+        author_call_sign=boy.call_sign,
         is_notified_time_left=state_data["is_notified_time_left"],
         is_repeatable=state_data["is_repeatable"],
         image=state_data["image"],
     )
 
     await add_event(new_event)
+
+    await call.message.answer_photo(
+        photo=state_data["image"],
+        caption=get_event_caption(**state_data),
+    )
     await state.clear()
     await call.message.answer(
         text="Событие добавлено!",
