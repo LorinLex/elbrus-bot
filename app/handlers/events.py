@@ -53,9 +53,10 @@ async def show_event_list_handler(message: Message,
 
     event_list = await get_event_list()
     for event in event_list:
+        # somehow asdict on 'event' not working
         await message.answer_photo(
             photo=event.image,
-            caption=get_event_caption(**asdict(event))
+            caption=get_event_caption(**(event.__dict__))
         )
 
 

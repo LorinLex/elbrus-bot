@@ -47,7 +47,7 @@ async def add_event(
 @db_manager.connection
 async def get_event_list(
     session: AsyncSession,
-):
+) -> list[Event]:
     query = select(
             EventModel.name,
             EventModel.image,
