@@ -11,8 +11,8 @@ from aiogram.types import Message, CallbackQuery, InaccessibleMessage
 from app import bot
 from app.dal import Boy
 from app.dal.events import Event, add_event, get_event_list
-from app.kb import confirm_event_inline_kb, confirm_inline_kb, main_kb, \
-    stop_fsm_inline_kb
+from app.kb import confirm_event_inline_kb, confirm_inline_kb, \
+    event_card_inline_kb, main_kb, stop_fsm_inline_kb
 from app.states import CreateEventStates, FixEventStates
 from app.utils import bool2human
 
@@ -56,7 +56,8 @@ async def show_event_list_handler(message: Message,
         # somehow asdict on 'event' not working
         await message.answer_photo(
             photo=event.image,
-            caption=get_event_caption(**(event.__dict__))
+            caption=get_event_caption(**(event.__dict__)),
+            reply_markup=event_card_inline_kb()
         )
 
 

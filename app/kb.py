@@ -8,10 +8,9 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 def main_kb() -> ReplyKeyboardMarkup:
     kb_list = [
         [KeyboardButton(text="🏋️ Похвастаться днем Gym'а")],
-        [KeyboardButton(text="Добавить событие")],
-        [KeyboardButton(text="📋 Посмотреть успехи недели")],
+        [KeyboardButton(text="🏕 Добавить событие")],
+        [KeyboardButton(text="📋 Посмотреть события")],
         [KeyboardButton(text="📋 Посмотреть успехи месяца")],
-        [KeyboardButton(text="🧗‍♂️ Сколько осталось до Эльбруса?")]
     ]
     return ReplyKeyboardMarkup(
         keyboard=kb_list,
@@ -121,6 +120,26 @@ def confirm_event_inline_kb() -> InlineKeyboardMarkup:
             text="✅ Все верно!",
             callback_data="confirm_yes")],
         [InlineKeyboardButton(text="❌ Отмена ❌", callback_data="fsm_stop")]
+    ]
+
+    return InlineKeyboardMarkup(
+        inline_keyboard=kb_list,
+        resize_keyboard=True,
+        one_time_keyboard=True,
+        input_field_placeholder="Воспользуйся меню"
+    )
+
+
+def event_card_inline_kb() -> InlineKeyboardMarkup:
+    kb_list = [
+        [InlineKeyboardButton(
+            text="Изменить",
+            callback_data="update_event"
+        )],
+        [InlineKeyboardButton(
+            text="Удалить",
+            callback_data="delete_name"
+        )],
     ]
 
     return InlineKeyboardMarkup(
