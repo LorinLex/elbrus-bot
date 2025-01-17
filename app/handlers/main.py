@@ -2,7 +2,8 @@ import datetime
 
 from aiogram import html, F, Router
 from aiogram.filters import Command, CommandStart
-from aiogram.types import Message
+from aiogram.fsm.context import FSMContext
+from aiogram.types import Message, CallbackQuery, InaccessibleMessage
 
 from app import settings
 from app.dal import Boy
@@ -29,6 +30,20 @@ async def remaining_time_handler(message: Message) -> None:
     await message.answer(
         f"Осталось дней: {html.bold(str(remaining_time.days))}",
         reply_markup=main_kb(),
+    )
+
+
+@router.callback_query(F.data == "fsm_stop")
+async def fsm_stop_handler(call: CallbackQuery, state: FSMContext) -> None:
+    if call.message is None or isinstance(call.message, InaccessibleMessage):
+        await call.answer("Что-то пошло не так:(")
+        return
+
+    await call.message.delete()
+    await state.clear()
+    await call.message.answer(
+        text="Окей, ты вернулся в главное меню",
+        reply_markup=main_kb()
     )
 
 

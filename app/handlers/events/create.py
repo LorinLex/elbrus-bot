@@ -1,78 +1,19 @@
 import re
-from datetime import datetime, date
-from dataclasses import asdict
-from typing import Optional
-
+from datetime import datetime
 from aiogram import html, F, Router
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
-from aiogram.methods import DeleteMessages
 from aiogram.types import Message, CallbackQuery, InaccessibleMessage
 from app import bot
 from app.dal import Boy
-from app.dal.events import Event, add_event, get_event_list
+from app.dal.events import Event, add_event
+from app.handlers.events.utils import get_event_caption
 from app.kb import confirm_event_inline_kb, confirm_inline_kb, \
-    event_card_inline_kb, main_kb, stop_fsm_inline_kb
+    main_kb, stop_fsm_inline_kb
 from app.states import CreateEventStates, FixEventStates
-from app.utils import bool2human
 
 
-router = Router()
-
-
-def get_event_caption(
-    name: str,
-    description: str,
-    date_start: date,
-    length: int,
-    author_call_sign: str,
-    is_notified_time_left: bool,
-    is_repeatable: bool,
-    **kwargs
-) -> str:
-    return (f"{html.bold(name)}\n\n"
-            f"{description}\n\n"
-            "Когда: "
-            f"{html.bold(date_start.strftime('%d.%m.%Y'))}\n"
-            "Длится (в днях): "
-            f"{html.bold(str(length))}\n"
-            "Писать оставшееся время: "
-            f"{html.bold(bool2human(is_notified_time_left))}\n"
-            "Повторяется каждый год: "
-            f"{html.bold(bool2human(is_repeatable))}\n"
-            "Автор:"
-            f"{html.bold(author_call_sign)}")
-
-
-@router.message(Command("show_events"))
-async def show_event_list_handler(message: Message,
-                                  state: FSMContext) -> None:
-    if message.text is None:
-        await message.answer("Что-то пошло не так:(")
-        return
-
-    event_list = await get_event_list()
-    for event in event_list:
-        # somehow asdict on 'event' not working
-        await message.answer_photo(
-            photo=event.image,
-            caption=get_event_caption(**(event.__dict__)),
-            reply_markup=event_card_inline_kb()
-        )
-
-
-async def confirm_before_saving(message: Message, state: FSMContext) -> None:
-    state_data = await state.get_data()
-    await state.set_state(CreateEventStates.confirm)
-
-    await message.answer(
-        text="Проверяй",
-    )
-    await message.answer_photo(
-        photo=state_data["image"],
-        caption=get_event_caption(**state_data),
-        reply_markup=confirm_event_inline_kb()
-    )
+router = Router(name="event_create")
 
 
 @router.message(Command("add_event"))
@@ -308,6 +249,20 @@ async def update_before_saving_handler(call: CallbackQuery,
     await call.message.answer(
         text=text,
         reply_markup=reply_markup
+    )
+
+
+async def confirm_before_saving(message: Message, state: FSMContext) -> None:
+    state_data = await state.get_data()
+    await state.set_state(CreateEventStates.confirm)
+
+    await message.answer(
+        text="Проверяй",
+    )
+    await message.answer_photo(
+        photo=state_data["image"],
+        caption=get_event_caption(**state_data),
+        reply_markup=confirm_event_inline_kb()
     )
 
 

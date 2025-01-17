@@ -130,16 +130,36 @@ def confirm_event_inline_kb() -> InlineKeyboardMarkup:
     )
 
 
-def event_card_inline_kb() -> InlineKeyboardMarkup:
+def event_card_inline_kb(event_id: int) -> InlineKeyboardMarkup:
     kb_list = [
         [InlineKeyboardButton(
             text="Изменить",
-            callback_data="update_event"
+            callback_data=f"update_event_{event_id}"
         )],
         [InlineKeyboardButton(
             text="Удалить",
-            callback_data="delete_name"
+            callback_data=f"delete_event_{event_id}"
         )],
+    ]
+
+    return InlineKeyboardMarkup(
+        inline_keyboard=kb_list,
+        resize_keyboard=True,
+        one_time_keyboard=True,
+        input_field_placeholder="Воспользуйся меню"
+    )
+
+
+def confirm_delete_inline_kb() -> InlineKeyboardMarkup:
+    kb_list = [
+        [InlineKeyboardButton(
+            text="✅ Все верно!",
+            callback_data="confirm_yes"
+        )],
+        [InlineKeyboardButton(
+            text="❌ Отмена ❌",
+            callback_data="confirm_no"
+        )]
     ]
 
     return InlineKeyboardMarkup(

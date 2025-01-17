@@ -196,19 +196,3 @@ async def show_month_success_handler(message: Message) -> None:
         caption=f"В этом месяце Gym days:\n{stats}",
         reply_markup=main_kb()
     )
-
-
-@router.callback_query(AddSportReportStates.day, F.data == "fsm_stop")
-@router.callback_query(AddSportReportStates.distance, F.data == "fsm_stop")
-@router.callback_query(AddSportReportStates.confirm, F.data == "fsm_stop")
-async def fsm_stop_handler(call: CallbackQuery, state: FSMContext) -> None:
-    if call.message is None or isinstance(call.message, InaccessibleMessage):
-        await call.answer("Что-то пошло не так:(")
-        return
-
-    await call.message.delete()
-    await state.clear()
-    await call.message.answer(
-        text="Окей, ты вернулся в главное меню",
-        reply_markup=main_kb()
-    )

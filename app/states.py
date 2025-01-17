@@ -14,6 +14,12 @@ class AddSportReportStates(StatesGroup):
     confirm = State()
 
 
+class MainEventStates(StatesGroup):
+    """Группа состояний для просмотра и удаления событий."""
+    show = State()
+    delete = State()  # для подтверждения
+
+
 class CreateEventStates(StatesGroup):
     """
     Группа состояний для создания нового события в БД.
