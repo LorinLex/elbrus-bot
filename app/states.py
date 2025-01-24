@@ -36,17 +36,6 @@ class CreateEventStates(StatesGroup):
     confirm = State()
 
 
-class FixEventStates(StatesGroup):
-    """Группа состояний для исправления поля перед записью события в БД."""
-    name = State()
-    image = State()
-    description = State()
-    date_start = State()
-    length = State()
-    is_notified_time_left = State()
-    is_repeatable = State()
-
-
 class UpdateEventStates(StatesGroup):
     """Группа состояний для обновления полей события, записанного в БД."""
     name = State()
