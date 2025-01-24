@@ -29,7 +29,10 @@ async def confirm_delete_event_handler(call: CallbackQuery,
         chat_id=call.message.chat.id,
         message_ids=[*range(list_start_message, call.message.message_id+1)]
     )
-    await state.update_data(event_id=event_id, start_message=call.message.message_id)
+    await state.update_data(
+        event_id=event_id,
+        start_message=call.message.message_id
+    )
 
     await call.message.answer_photo(
         photo=event.image,
@@ -51,7 +54,6 @@ async def delete_event_handler(call: CallbackQuery,
     event_id = (await state.get_data())["event_id"]
     await delete_event(event_id)
 
-    # list_start_message = (await state.get_data())["start_message"]
     await bot.delete_message(
         chat_id=call.message.chat.id,
         message_id=call.message.message_id

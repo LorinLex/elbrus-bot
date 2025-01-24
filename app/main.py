@@ -17,6 +17,8 @@ async def set_commands():
                    description="Записать день Gym'а"),
         BotCommand(command='add_event',
                    description="Добавить событие"),
+        BotCommand(command='show_events',
+                   description="Посмотреть список событий"),
         BotCommand(command='get_week_stats',
                    description="Посмотреть успехи недели"),
         BotCommand(command='get_month_stats',

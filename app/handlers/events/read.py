@@ -2,7 +2,7 @@ from dataclasses import asdict
 from aiogram import F, Router
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message, CallbackQuery, InaccessibleMessage
+from aiogram.types import Message, InaccessibleMessage
 from app.dal.events import get_event_list
 from app.handlers.events.utils import get_event_caption
 from app.kb import event_card_inline_kb
@@ -28,7 +28,6 @@ async def read_event_list_handler(message: Message,
 
     event_list = await get_event_list()
     for event in event_list:
-        # somehow asdict on 'event' not working
         await message.answer_photo(
             photo=event.image,
             caption=get_event_caption(**(asdict(event))),
