@@ -1,3 +1,4 @@
+from dataclasses import asdict
 from aiogram import F, Router
 from aiogram.types import CallbackQuery
 from aiogram.fsm.context import FSMContext
@@ -32,7 +33,7 @@ async def confirm_delete_event_handler(call: CallbackQuery,
 
     await call.message.answer_photo(
         photo=event.image,
-        caption=get_event_caption(**(event.__dict__))
+        caption=get_event_caption(**(asdict(event)))
     )
     await call.message.answer(
         text="Ты хочешь удалить это событие?",

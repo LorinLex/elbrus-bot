@@ -18,6 +18,7 @@ class MainEventStates(StatesGroup):
     """Группа состояний для просмотра и удаления событий."""
     show = State()
     delete = State()  # для подтверждения
+    update = State()
 
 
 class CreateEventStates(StatesGroup):

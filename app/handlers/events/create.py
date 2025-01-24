@@ -8,7 +8,7 @@ from app import bot
 from app.dal import Boy
 from app.dal.events import Event, add_event
 from app.handlers.events.utils import get_event_caption
-from app.kb import confirm_event_inline_kb, confirm_inline_kb, \
+from app.kb import confirm_inline_kb, \
     main_kb, stop_fsm_inline_kb
 from app.states import CreateEventStates, FixEventStates
 

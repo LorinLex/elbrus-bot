@@ -86,7 +86,7 @@ def stop_fsm_inline_kb() -> InlineKeyboardMarkup:
     )
 
 
-def confirm_event_inline_kb() -> InlineKeyboardMarkup:
+def update_event_inline_kb() -> InlineKeyboardMarkup:
     kb_list = [
         [InlineKeyboardButton(
             text="Изменить имя",
@@ -116,9 +116,6 @@ def confirm_event_inline_kb() -> InlineKeyboardMarkup:
             text="Изменить повторение",
             callback_data="update_is_repeatable"
         )],
-        [InlineKeyboardButton(
-            text="✅ Все верно!",
-            callback_data="confirm_yes")],
         [InlineKeyboardButton(text="❌ Отмена ❌", callback_data="fsm_stop")]
     ]
 

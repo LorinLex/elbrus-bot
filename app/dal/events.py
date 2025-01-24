@@ -1,12 +1,13 @@
 import datetime
 
-from attr import dataclass
-from sqlalchemy import delete, select
+from sqlalchemy import delete, select, update
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import db_manager
 from app.models import BoyModel, EventModel
+
+from dataclasses import dataclass
 
 
 @dataclass
@@ -46,6 +47,20 @@ async def add_event(
     )
 
     session.add(event_row)
+    await session.commit()
+
+
+@db_manager.connection
+async def update_event(
+    session: AsyncSession,
+    event_id: int,
+    **kwargs
+) -> None:
+    query = update(EventModel)\
+        .where(EventModel.id == event_id)\
+        .values(**kwargs)
+
+    await session.execute(query)
     await session.commit()
 
 
