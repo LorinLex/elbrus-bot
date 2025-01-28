@@ -1,4 +1,6 @@
 from datetime import datetime, date
+from enum import Enum
+from typing import Optional
 
 from sqlalchemy import Column, ForeignKey, Table, func
 from sqlalchemy.orm import Mapped
@@ -6,6 +8,13 @@ from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
 
 from app.db import Base
+
+
+class ChatTypeEnum(Enum):
+    PRIVATE = "private"
+    GROUP = "group"
+    SUPERGROUP = "supergroup"
+    CHANNEL = "channel"
 
 
 BoyEventModel = Table(
@@ -58,3 +67,12 @@ class EventModel(Base):
     is_notified_time_left: Mapped[bool] = mapped_column(default=False)
     is_repeatable: Mapped[bool] = mapped_column(default=False)
     create_date: Mapped[datetime] = mapped_column(server_default=func.now())
+
+
+class ChatModel(Base):
+    __tablename__ = "ChatModel"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    type: Mapped[ChatTypeEnum]
+    title: Mapped[Optional[str]]
+    username: Mapped[Optional[str]]
