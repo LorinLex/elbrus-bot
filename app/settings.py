@@ -1,5 +1,6 @@
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from apscheduler.triggers.cron import CronTrigger
 from functools import lru_cache
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import final
 
 
@@ -13,6 +14,15 @@ class Settings(BaseSettings):
     debug: bool = True
 
     bot_token: str = ''
+
+    scheduler_settings: dict[str, str | dict[str, str]] = {
+        'apscheduler.job_defaults.coalesce': 'false',
+        'apscheduler.job_defaults.max_instances': '3',
+    }
+
+    notify_event_trigger: CronTrigger = CronTrigger(day_of_week="fri", hour=19)
+    notify_workout_week_trigger: CronTrigger = CronTrigger(day_of_week="sun", 
+                                                           hour=19)
 
     target_date: str = "2025-08-01"
 

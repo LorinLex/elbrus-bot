@@ -21,11 +21,11 @@ async def get_chat_id_list(session: AsyncSession):
 
 
 @db_manager.connection
-async def get_chat_group_id_list(session: AsyncSession):
+async def get_chat_group_id(session: AsyncSession):
     query = select(ChatModel.id)\
         .where(ChatModel.type == ChatTypeEnum.GROUP)
     result = await session.execute(query)
-    return result.scalars().all()
+    return result.scalars().first()
 
 
 @db_manager.connection

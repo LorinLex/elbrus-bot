@@ -1,13 +1,19 @@
 import asyncio
+import datetime
 import logging
 import sys
 
 from app.dal import add_boys
+from app.dal.events import get_future_event_list
 from app.handlers import main_router, sport_router, event_router
+from app.jobs import notify_events_remaining_time, \
+    notify_tommorow_event, notify_workout_week
 from app.middlewares import ChatWritingMiddleware, ManCheckingMiddleware
 from app import bot, dp, settings
 from app.db import db_manager
 from aiogram.types import BotCommand, BotCommandScopeDefault
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.date import DateTrigger
 
 
 async def set_commands():
@@ -29,6 +35,37 @@ async def set_commands():
     await bot.set_my_commands(commands, BotCommandScopeDefault())
 
 
+def register_midddlewares() -> None:
+    dp.message.middleware.register(ManCheckingMiddleware())
+    dp.callback_query.middleware.register(ManCheckingMiddleware())
+
+    dp.message.middleware.register(ChatWritingMiddleware())
+    dp.callback_query.middleware.register(ChatWritingMiddleware())
+
+
+async def start_sheduler() -> None:
+    sheduler = AsyncIOScheduler(settings.scheduler_settings)
+    sheduler.add_job(
+        notify_events_remaining_time,
+        trigger=settings.notify_event_trigger
+    )
+    sheduler.add_job(
+        notify_workout_week,
+        trigger=settings.notify_workout_week_trigger
+    )
+
+    event_list = await get_future_event_list()
+    for event in event_list:
+        sheduler.add_job(
+            notify_tommorow_event,
+            kwargs={"event_id": event.id},
+            trigger=DateTrigger(run_date=event.date_start,
+                                timezone="Europe/Moscow")
+        )
+
+    sheduler.start()
+
+
 async def start_bot():
     await set_commands()
     await db_manager.init_models()
@@ -38,12 +75,8 @@ async def start_bot():
 async def main() -> None:
     dp.include_routers(sport_router, event_router, main_router)
     dp.startup.register(start_bot)
-
-    dp.message.middleware.register(ManCheckingMiddleware())
-    dp.callback_query.middleware.register(ManCheckingMiddleware())
-
-    dp.message.middleware.register(ChatWritingMiddleware())
-    dp.callback_query.middleware.register(ChatWritingMiddleware())
+    register_midddlewares()
+    await start_sheduler()
 
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)
