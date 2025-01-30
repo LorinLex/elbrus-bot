@@ -11,11 +11,7 @@ log = logging.getLogger("actions")
 
 
 async def send_gym_to_group(boy: Boy) -> None:
-    group_id = get_main_group_id()
-
-    if not group_id:
-        log.error("Нет id группы!!!")
-        return
+    group_id = await get_main_group_id()
 
     await bot.send_photo(
         chat_id=group_id,

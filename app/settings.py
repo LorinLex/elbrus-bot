@@ -1,4 +1,4 @@
-from apscheduler.triggers.cron import CronTrigger
+from apscheduler.triggers.cron import CronTrigger  # type: ignore
 from functools import lru_cache
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import final
@@ -14,8 +14,6 @@ class Settings(BaseSettings):
     debug: bool = True
 
     bot_token: str = ''
-
-    main_group_id: int = 0
 
     scheduler_settings: dict[str, str | dict[str, str]] = {
         'apscheduler.job_defaults.coalesce': 'false',
