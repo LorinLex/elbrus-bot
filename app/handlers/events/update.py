@@ -16,7 +16,8 @@ from dataclasses import asdict
 router = Router(name="event_update")
 
 
-@router.callback_query(F.data.startswith("update_event_"))
+@router.callback_query(F.data.startswith("update_event_"),
+                       F.chat.type == "private")
 async def update_event_handler(call: CallbackQuery,
                                state: FSMContext) -> None:
     if call.message is None or call.data is None:

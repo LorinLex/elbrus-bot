@@ -12,7 +12,8 @@ from app import bot
 router = Router(name="event_delete")
 
 
-@router.callback_query(F.data.startswith("delete_event_"))
+@router.callback_query(F.data.startswith("delete_event_"),
+                       F.chat.type == "private")
 async def confirm_delete_event_handler(call: CallbackQuery,
                                        state: FSMContext) -> None:
     if call.message is None or call.data is None:

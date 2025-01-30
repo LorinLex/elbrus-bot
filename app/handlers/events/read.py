@@ -28,8 +28,12 @@ async def read_event_list_handler(message: Message,
 
     event_list = await get_event_list()
     for event in event_list:
+        keyboard = None
+        if message.chat.type == "private":
+            keyboard = event_card_inline_kb(event_id=event.id)
+
         await message.answer_photo(
             photo=event.image,
             caption=get_event_caption(**(asdict(event))),
-            reply_markup=event_card_inline_kb(event_id=event.id)
+            reply_markup=keyboard
         )

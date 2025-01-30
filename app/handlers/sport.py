@@ -18,8 +18,9 @@ from app.utils import in_elbrus_height
 router = Router()
 
 
-@router.message(Command("add_sport_report"))
-@router.message(F.text == "🏋️ Похвастаться днем Gym'а")
+@router.message(Command("add_sport_report"), F.chat.type == "private")
+@router.message(F.text == "🏋️ Похвастаться днем Gym'а",
+                F.chat.type == "private")
 async def add_sport_report_handler(message: Message,
                                    state: FSMContext) -> None:
     await state.clear()
@@ -150,7 +151,7 @@ async def show_week_success_handler(message: Message) -> None:
             photo=FSInputFile("static/arni_angry.webp"),
             caption="На этой неделе не было Gym days... "
                     "Не зли Арни, ходи в зал!",
-            reply_markup=main_kb()
+            reply_markup=main_kb(is_group=message.chat.type != "private")
         )
 
     stats = "".join([
@@ -164,7 +165,7 @@ async def show_week_success_handler(message: Message) -> None:
     await message.answer_photo(
         photo=FSInputFile("static/arni_old.webp"),
         caption=f"На этой неделе Gym days:\n{stats}",
-        reply_markup=main_kb()
+        reply_markup=main_kb(is_group=message.chat.type != "private")
     )
     await message.answer(
         "P.S. Дистанция от Эльбруса считается по прямой, перпендикулярной "
@@ -181,7 +182,7 @@ async def show_month_success_handler(message: Message) -> None:
             photo=FSInputFile("static/arni_angry.webp"),
             caption="В этом месяце не было Gym days... "
                     "Не зли Арни, ходи в зал!",
-            reply_markup=main_kb()
+            reply_markup=main_kb(is_group=message.chat.type != "private")
         )
 
     stats = "".join([
@@ -194,5 +195,5 @@ async def show_month_success_handler(message: Message) -> None:
     await message.answer_photo(
         photo=FSInputFile("static/arni_old.webp"),
         caption=f"В этом месяце Gym days:\n{stats}",
-        reply_markup=main_kb()
+        reply_markup=main_kb(is_group=message.chat.type != "private")
     )

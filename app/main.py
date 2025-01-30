@@ -1,5 +1,4 @@
 import asyncio
-import datetime
 import logging
 import sys
 
@@ -11,13 +10,14 @@ from app.jobs import notify_events_remaining_time, \
 from app.middlewares import ChatWritingMiddleware, ManCheckingMiddleware
 from app import bot, dp, settings
 from app.db import db_manager
-from aiogram.types import BotCommand, BotCommandScopeDefault
+from aiogram.types import BotCommand, BotCommandScopeAllGroupChats, \
+    BotCommandScopeAllPrivateChats
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.date import DateTrigger
 
 
 async def set_commands():
-    commands = [
+    private_commands = [
         BotCommand(command='start', description='Старт'),
         BotCommand(command='add_sport_report',
                    description="Записать день Gym'а"),
@@ -32,7 +32,27 @@ async def set_commands():
         BotCommand(command='remaining_time',
                    description='Узнать сколько осталось до Эльбруса'),
     ]
-    await bot.set_my_commands(commands, BotCommandScopeDefault())
+
+    group_commands = [
+        BotCommand(command='start', description='Старт'),
+        BotCommand(command='show_events',
+                   description="Посмотреть список событий"),
+        BotCommand(command='get_week_stats',
+                   description="Посмотреть успехи недели"),
+        BotCommand(command='get_month_stats',
+                   description="Посмотреть успехи месяца"),
+        BotCommand(command='remaining_time',
+                   description='Узнать сколько осталось до Эльбруса'),
+    ]
+    await bot.set_my_commands(
+        private_commands,
+        BotCommandScopeAllPrivateChats()
+    )
+
+    await bot.set_my_commands(
+        group_commands,
+        BotCommandScopeAllGroupChats()
+    )
 
 
 def register_midddlewares() -> None:

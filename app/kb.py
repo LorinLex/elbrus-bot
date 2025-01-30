@@ -5,13 +5,18 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 
-def main_kb() -> ReplyKeyboardMarkup:
+def main_kb(is_group: bool = False) -> ReplyKeyboardMarkup:
     kb_list = [
-        [KeyboardButton(text="🏋️ Похвастаться днем Gym'а")],
-        [KeyboardButton(text="🏕 Добавить событие")],
         [KeyboardButton(text="📋 Посмотреть события")],
         [KeyboardButton(text="📋 Посмотреть успехи месяца")],
     ]
+
+    if not is_group:
+        kb_list.extend([
+            [KeyboardButton(text="🏋️ Похвастаться днем Gym'а")],
+            [KeyboardButton(text="🏕 Добавить событие")]
+        ])
+
     return ReplyKeyboardMarkup(
         keyboard=kb_list,
         resize_keyboard=True,

@@ -16,8 +16,8 @@ from app.states import CreateEventStates
 router = Router(name="event_create")
 
 
-@router.message(Command("add_event"))
-@router.message(F.text == "🏕 Добавить событие")
+@router.message(Command("add_event"), F.chat.type == "private")
+@router.message(F.text == "🏕 Добавить событие", F.chat.type == "private")
 async def add_event_handler(message: Message,
                             state: FSMContext,
                             boy: Boy) -> None:
