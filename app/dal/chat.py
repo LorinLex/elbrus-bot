@@ -1,4 +1,5 @@
 from sqlalchemy import select
+from app import settings
 from app.db import db_manager
 from sqlalchemy.ext.asyncio import AsyncSession
 from ..models import ChatModel, ChatTypeEnum
@@ -21,11 +22,15 @@ async def get_chat_id_list(session: AsyncSession):
 
 
 @db_manager.connection
-async def get_chat_group_id(session: AsyncSession):
+async def get_chat_group_id_list(session: AsyncSession):
     query = select(ChatModel.id)\
         .where(ChatModel.type == ChatTypeEnum.GROUP)
     result = await session.execute(query)
-    return result.scalars().first()
+    return result.scalars()
+
+
+def get_main_group_id():
+    return settings.main_group_id
 
 
 @db_manager.connection

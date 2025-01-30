@@ -3,7 +3,7 @@ from datetime import datetime
 import logging
 
 from aiogram import html
-from app.dal.chat import get_chat_group_id
+from app.dal.chat import get_main_group_id
 from app.dal.events import get_event_by_id, get_notifying_event_list
 from app.dal.sport import get_week_stats
 from app.handlers.events.utils import get_event_caption
@@ -17,7 +17,7 @@ log = logging.getLogger("jobs")
 
 async def notify_events_remaining_time() -> None:
     event_list = await get_notifying_event_list()
-    group_id = await get_chat_group_id()
+    group_id = get_main_group_id()
 
     if not group_id:
         log.error("Нет id группы!!!")
@@ -45,7 +45,7 @@ async def notify_events_remaining_time() -> None:
 
 
 async def notify_workout_week() -> None:
-    group_id = await get_chat_group_id()
+    group_id = get_main_group_id()
 
     if not group_id:
         log.error("Нет id группы!!!")
@@ -78,7 +78,7 @@ async def notify_workout_week() -> None:
 
 
 async def notify_tommorow_event(event_id: int) -> None:
-    group_id = await get_chat_group_id()
+    group_id = get_main_group_id()
     if not group_id:
         log.error("Нет id группы!!!")
         return

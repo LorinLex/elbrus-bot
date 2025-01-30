@@ -15,6 +15,8 @@ class Settings(BaseSettings):
 
     bot_token: str = ''
 
+    main_group_id: int = 0
+
     scheduler_settings: dict[str, str | dict[str, str]] = {
         'apscheduler.job_defaults.coalesce': 'false',
         'apscheduler.job_defaults.max_instances': '3',

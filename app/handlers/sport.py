@@ -9,6 +9,7 @@ from aiogram.types import Message, CallbackQuery, InaccessibleMessage, \
     FSInputFile
 
 from app import bot
+from app.actons import send_gym_to_group
 from app.dal import Boy, add_report, get_month_stats, get_week_stats
 from app.kb import confirm_inline_kb, main_kb, month_kb, stop_fsm_inline_kb
 from app.states import AddSportReportStates
@@ -109,6 +110,8 @@ async def write_report(call: CallbackQuery,
 
     await state.clear()
     await call.answer("Gym-day записан, бро!", reply_markup=main_kb())
+
+    await send_gym_to_group(boy)
 
     if call.message is not None\
             and not isinstance(call.message, InaccessibleMessage):
