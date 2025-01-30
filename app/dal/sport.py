@@ -56,7 +56,7 @@ async def get_week_stats(session: AsyncSession) -> list[SportStats]:
 
 @db_manager.connection
 async def get_month_stats(session: AsyncSession) -> list[SportStats]:
-    month = datetime.date.today().month
+    month = datetime.date.today().strftime("%m")
 
     week_reports = select(
             BoyModel.call_sign,
