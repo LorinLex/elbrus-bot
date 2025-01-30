@@ -2,18 +2,14 @@ import asyncio
 import logging
 import sys
 
-from app.dal import add_boys
-from app.dal.events import get_future_event_list
-from app.handlers import main_router, sport_router, event_router
-from app.jobs import notify_events_remaining_time, \
-    notify_tommorow_event, notify_workout_week
-from app.middlewares import ChatWritingMiddleware, ManCheckingMiddleware
-from app import bot, dp, settings
-from app.db import db_manager
 from aiogram.types import BotCommand, BotCommandScopeAllGroupChats, \
     BotCommandScopeAllPrivateChats
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from apscheduler.triggers.date import DateTrigger
+from app import bot, dp, settings
+from app.dal import add_boys
+from app.db import db_manager
+from app.handlers import main_router, sport_router, event_router
+from app.middlewares import ChatWritingMiddleware, ManCheckingMiddleware
+from app.sheduler import start_sheduler
 
 
 async def set_commands():
@@ -61,29 +57,6 @@ def register_midddlewares() -> None:
 
     dp.message.middleware.register(ChatWritingMiddleware())
     dp.callback_query.middleware.register(ChatWritingMiddleware())
-
-
-async def start_sheduler() -> None:
-    sheduler = AsyncIOScheduler(settings.scheduler_settings)
-    sheduler.add_job(
-        notify_events_remaining_time,
-        trigger=settings.notify_event_trigger
-    )
-    sheduler.add_job(
-        notify_workout_week,
-        trigger=settings.notify_workout_week_trigger
-    )
-
-    event_list = await get_future_event_list()
-    for event in event_list:
-        sheduler.add_job(
-            notify_tommorow_event,
-            kwargs={"event_id": event.id},
-            trigger=DateTrigger(run_date=event.date_start,
-                                timezone="Europe/Moscow")
-        )
-
-    sheduler.start()
 
 
 async def start_bot():

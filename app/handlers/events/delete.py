@@ -2,7 +2,7 @@ from dataclasses import asdict
 from aiogram import F, Router
 from aiogram.types import CallbackQuery
 from aiogram.fsm.context import FSMContext
-from app.dal.events import delete_event, get_event
+from app.dal.events import delete_event, get_event_by_id
 from app.handlers.events.utils import get_event_caption
 from app.kb import confirm_delete_inline_kb, main_kb
 from app.states import MainEventStates
@@ -13,7 +13,7 @@ router = Router(name="event_delete")
 
 
 @router.callback_query(F.data.startswith("delete_event_"),
-                       F.chat.type == "private")
+                       F.message.chat.type == "private")
 async def confirm_delete_event_handler(call: CallbackQuery,
                                        state: FSMContext) -> None:
     if call.message is None or call.data is None:
@@ -23,7 +23,7 @@ async def confirm_delete_event_handler(call: CallbackQuery,
     await state.set_state(MainEventStates.delete)
 
     event_id = call.data[13::]
-    event = await get_event(event_id)
+    event = await get_event_by_id(event_id)
 
     list_start_message = (await state.get_data())["start_message"]
     await bot.delete_messages(

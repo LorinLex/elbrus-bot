@@ -48,7 +48,7 @@ async def add_event(
     boy_query = select(BoyModel.id)\
         .where(BoyModel.call_sign == event.author_call_sign)
 
-    event_row = EventModel(
+    event_raw = EventModel(
         name=event.name,
         image=event.image,
         description=event.description,
@@ -59,7 +59,7 @@ async def add_event(
         is_repeatable=event.is_repeatable,
     )
 
-    session.add(event_row)
+    session.add(event_raw)
     await session.commit()
 
 
@@ -106,8 +106,18 @@ async def get_future_event_list(session: AsyncSession) -> list[EventDB]:
 
 
 @db_manager.connection
-async def get_event(session: AsyncSession, event_id: int) -> EventDB:
-    query = event_query.where(EventModel.id == event_id)
+async def get_event_by_id(session: AsyncSession, id: int) -> EventDB:
+    query = event_query.where(EventModel.id == id)
+
+    result = (await session.execute(query)).first()
+    if result is None:
+        raise NoResultFound()
+    return EventDB(**result._mapping)
+
+
+@db_manager.connection
+async def get_event_by_name(session: AsyncSession, name: str) -> EventDB:
+    query = event_query.where(EventModel.name == name)
 
     result = (await session.execute(query)).first()
     if result is None:

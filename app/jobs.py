@@ -4,7 +4,7 @@ import logging
 
 from aiogram import html
 from app.dal.chat import get_chat_group_id
-from app.dal.events import get_event, get_notifying_event_list
+from app.dal.events import get_event_by_id, get_notifying_event_list
 from app.dal.sport import get_week_stats
 from app.handlers.events.utils import get_event_caption
 from app.utils import in_elbrus_height
@@ -83,7 +83,7 @@ async def notify_tommorow_event(event_id: int) -> None:
         log.error("Нет id группы!!!")
         return
 
-    event = await get_event(event_id=event_id)
+    event = await get_event_by_id(event_id)
     await bot.send_photo(
         chat_id=group_id,
         photo=event.image,

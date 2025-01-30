@@ -54,3 +54,16 @@ async def wtf_handler(message: Message) -> None:
             "Моя твоя не понимать",
             reply_markup=main_kb(is_group=message.chat.type != "private")
         )
+
+
+@router.callback_query()
+async def wtf_command_handler(call: CallbackQuery) -> None:
+    if call.message is None or isinstance(call.message, InaccessibleMessage):
+        await call.answer("Что-то пошло не так:(")
+        return
+
+    if call.message.chat.type == "private":
+        await call.message.answer(
+            "Странная команда...",
+            reply_markup=main_kb(is_group=call.message.chat.type != "private")
+        )
