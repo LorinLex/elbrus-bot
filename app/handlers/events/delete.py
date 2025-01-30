@@ -2,6 +2,7 @@ from dataclasses import asdict
 from aiogram import F, Router
 from aiogram.types import CallbackQuery
 from aiogram.fsm.context import FSMContext
+from app.actons import EventActionEnum, send_event_action_to_group
 from app.dal.events import delete_event, get_event_by_id
 from app.handlers.events.utils import get_event_caption
 from app.kb import confirm_delete_inline_kb, main_kb
@@ -53,6 +54,10 @@ async def delete_event_handler(call: CallbackQuery,
         return
 
     event_id = (await state.get_data())["event_id"]
+    await send_event_action_to_group(
+        EventActionEnum.DELETE,
+        await get_event_by_id(event_id)
+    )
     await delete_event(event_id)
 
     await bot.delete_message(

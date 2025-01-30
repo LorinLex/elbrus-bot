@@ -4,6 +4,7 @@ from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
 from app import bot
+from app.actons import EventActionEnum, send_event_action_to_group
 from app.dal.events import update_event, get_event_by_id
 from app.handlers.events.utils import get_event_caption
 from app.kb import confirm_inline_kb, stop_fsm_inline_kb, \
@@ -46,7 +47,7 @@ async def update_event_handler(call: CallbackQuery,
 
     await call.message.answer_photo(
         photo=event.image,
-        caption=get_event_caption(**(asdict(event))),
+        caption=get_event_caption(**asdict(event)),
         reply_markup=update_event_inline_kb()
     )
 
@@ -106,10 +107,13 @@ async def update_event_name_handler(message: Message,
     )
 
     await update_event(event_id=state_data["event_id"], name=message.text)
+
     event = await get_event_by_id(state_data["event_id"])
+    await send_event_action_to_group(type=EventActionEnum.UPDATE, event=event)
+
     await message.answer_photo(
         photo=event.image,
-        caption=get_event_caption(**(asdict(event)))
+        caption=get_event_caption(**asdict(event))
     )
 
     await message.answer(
@@ -132,10 +136,13 @@ async def update_event_image_handler(message: Message,
     )
 
     await update_event(event_id=state_data["event_id"], image=file_id)
+
     event = await get_event_by_id(state_data["event_id"])
+    await send_event_action_to_group(type=EventActionEnum.UPDATE, event=event)
+
     await message.answer_photo(
         photo=event.image,
-        caption=get_event_caption(**(asdict(event)))
+        caption=get_event_caption(**asdict(event))
     )
 
     await message.answer(
@@ -159,10 +166,13 @@ async def update_event_description_handler(message: Message,
         event_id=state_data["event_id"],
         description=message.text
     )
+
     event = await get_event_by_id(state_data["event_id"])
+    await send_event_action_to_group(type=EventActionEnum.UPDATE, event=event)
+
     await message.answer_photo(
         photo=event.image,
-        caption=get_event_caption(**(asdict(event)))
+        caption=get_event_caption(**asdict(event))
     )
 
     await message.answer(
@@ -198,13 +208,15 @@ async def update_event_date_start_handler(message: Message,
     )
 
     await update_event(event_id=state_data["event_id"], date_start=date)
+
     event = await get_event_by_id(state_data["event_id"])
+    await send_event_action_to_group(type=EventActionEnum.UPDATE, event=event)
 
     modify_sheduled_event_date(event)
 
     await message.answer_photo(
         photo=event.image,
-        caption=get_event_caption(**(asdict(event)))
+        caption=get_event_caption(**asdict(event))
     )
 
     await message.answer(
@@ -240,10 +252,13 @@ async def update_event_length_handler(message: Message,
     )
 
     await update_event(event_id=state_data["event_id"], length=length)
+
     event = await get_event_by_id(state_data["event_id"])
+    await send_event_action_to_group(type=EventActionEnum.UPDATE, event=event)
+
     await message.answer_photo(
         photo=event.image,
-        caption=get_event_caption(**(asdict(event)))
+        caption=get_event_caption(**asdict(event))
     )
 
     await message.answer(
@@ -272,10 +287,13 @@ async def update_event_notify_handler(call: CallbackQuery,
         event_id=state_data["event_id"],
         is_notified_time_left=human2bool(call.data[8::])
     )
+
     event = await get_event_by_id(state_data["event_id"])
+    await send_event_action_to_group(type=EventActionEnum.UPDATE, event=event)
+
     await call.message.answer_photo(
         photo=event.image,
-        caption=get_event_caption(**(asdict(event)))
+        caption=get_event_caption(**asdict(event))
     )
 
     await call.message.answer(
@@ -304,10 +322,13 @@ async def update_event_repeatable_handler(call: CallbackQuery,
         event_id=state_data["event_id"],
         is_repeatable=human2bool(call.data[8::])
     )
+
     event = await get_event_by_id(state_data["event_id"])
+    await send_event_action_to_group(type=EventActionEnum.UPDATE, event=event)
+
     await call.message.answer_photo(
         photo=event.image,
-        caption=get_event_caption(**(asdict(event)))
+        caption=get_event_caption(**asdict(event))
     )
 
     await call.message.answer(

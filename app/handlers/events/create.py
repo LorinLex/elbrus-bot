@@ -5,6 +5,7 @@ from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
 from app import bot
+from app.actons import EventActionEnum, send_event_action_to_group
 from app.dal import Boy
 from app.dal.events import Event, add_event, get_event_by_name
 from app.handlers.events.utils import get_event_caption
@@ -177,6 +178,7 @@ async def add_event_repeatable_handler(call: CallbackQuery,
     await add_event(new_event)
 
     event_obj = await get_event_by_name(name=state_data["name"])
+    await send_event_action_to_group(EventActionEnum.CREATE, event_obj)
     shedule_new_event(event=event_obj)
 
     await bot.delete_messages(
