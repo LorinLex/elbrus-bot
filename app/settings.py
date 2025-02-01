@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     notify_event_trigger: CronTrigger = CronTrigger(day_of_week="fri", hour=19)
     notify_workout_week_trigger: CronTrigger = CronTrigger(day_of_week="sun", 
                                                            hour=19)
+    everyday_joke_trigger: CronTrigger = CronTrigger(hour=18)
 
     target_date: str = "2025-08-01"
 

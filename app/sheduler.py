@@ -1,7 +1,7 @@
 from app import settings, sheduler_ins
 from app.dal.events import EventDB, get_future_event_list
 from app.jobs import notify_events_remaining_time, notify_tommorow_event, \
-    notify_workout_week
+    notify_workout_week, send_everyday_joke
 from apscheduler.job import Job  # type: ignore
 from apscheduler.triggers.date import DateTrigger  # type: ignore
 
@@ -37,6 +37,11 @@ async def start_sheduler() -> None:
     sheduler_ins.add_job(
         notify_workout_week,
         trigger=settings.notify_workout_week_trigger
+    )
+
+    sheduler_ins.add_job(
+        send_everyday_joke,
+        trigger=settings.everyday_joke_trigger
     )
 
     event_list = await get_future_event_list()

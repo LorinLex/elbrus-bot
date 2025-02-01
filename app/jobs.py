@@ -6,6 +6,7 @@ from aiogram import html
 from app.dal.chat import get_main_group_id
 from app.dal.events import get_event_by_id, get_notifying_event_list
 from app.dal.sport import get_week_stats
+from app.jokes import get_joke
 from app.utils import get_event_caption
 from app.utils import in_elbrus_height
 from . import bot
@@ -92,4 +93,27 @@ async def notify_tommorow_event(event_id: int) -> None:
     await bot.send_message(
         chat_id=group_id,
         text=f"Завтра {html.bold(event.name)}!!!"
+    )
+
+
+async def send_everyday_joke() -> None:
+    group_id = await get_main_group_id()
+    if not group_id:
+        log.error("Нет id группы!!!")
+        return
+
+    source, joke = await get_joke()
+
+    if not joke:
+        await bot.send_message(
+            chat_id=group_id,
+            text="Не могу вспомнить анекдот..."
+        )
+        return
+
+    await bot.send_message(
+        chat_id=group_id,
+        text="Внимание, анекдот!\n\n"
+             f"{joke}\n\n"
+             f"Источник: {source}"
     )
