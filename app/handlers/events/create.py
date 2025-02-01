@@ -13,6 +13,7 @@ from app.kb import confirm_inline_kb, \
     main_kb, stop_fsm_inline_kb
 from app.sheduler import shedule_new_event
 from app.states import CreateEventStates
+from sqlalchemy.exc import NoResultFound
 
 
 router = Router(name="event_create")
@@ -43,6 +44,16 @@ async def add_event_name_handler(message: Message, state: FSMContext) -> None:
             text="Что-то пошло не так:(",
         )
         return
+
+    try:
+        await get_event_by_name(name=message.text)
+        await message.answer(
+            text="Такое название уже есть, попробуй снова!",
+            reply_markup=stop_fsm_inline_kb()
+        )
+        return
+    except NoResultFound:
+        pass
 
     await state.update_data(name=message.text)
     await state.set_state(CreateEventStates.image)

@@ -5,7 +5,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
 from app import bot
 from app.actons import EventActionEnum, send_event_action_to_group
-from app.dal.events import update_event, get_event_by_id
+from app.dal.events import get_event_by_name, update_event, get_event_by_id
 from app.utils import get_event_caption
 from app.kb import confirm_inline_kb, stop_fsm_inline_kb, \
     update_event_inline_kb
@@ -13,6 +13,7 @@ from app.sheduler import modify_sheduled_event_date
 from app.states import UpdateEventStates, MainEventStates
 from app.utils import human2bool
 from dataclasses import asdict
+from sqlalchemy.exc import NoResultFound
 
 
 router = Router(name="event_update")
@@ -96,6 +97,16 @@ async def update_event_name_handler(message: Message,
             text="Что-то пошло не так:(",
         )
         return
+
+    try:
+        await get_event_by_name(name=message.text)
+        await message.answer(
+            text="Такое название уже есть, попробуй снова!",
+            reply_markup=stop_fsm_inline_kb()
+        )
+        return
+    except NoResultFound:
+        pass
 
     state_data = await state.get_data()
     await state.clear()
