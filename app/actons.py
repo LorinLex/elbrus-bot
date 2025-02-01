@@ -9,7 +9,7 @@ from app import bot
 from aiogram.types import FSInputFile
 
 from app.dal.events import EventDB
-from app.handlers.events.utils import get_event_caption
+from app.utils import get_event_caption
 
 
 log = logging.getLogger("actions")

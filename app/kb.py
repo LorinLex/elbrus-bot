@@ -9,6 +9,7 @@ def main_kb(is_group: bool = False) -> ReplyKeyboardMarkup:
     kb_list = [
         [KeyboardButton(text="📋 Посмотреть события")],
         [KeyboardButton(text="📋 Посмотреть успехи месяца")],
+        [KeyboardButton(text="😂 Вспомни анекдот!")],
     ]
 
     if not is_group:
@@ -21,7 +22,7 @@ def main_kb(is_group: bool = False) -> ReplyKeyboardMarkup:
         keyboard=kb_list,
         resize_keyboard=True,
         one_time_keyboard=True,
-        input_field_placeholder="Воспользуйся меню👇"
+        input_field_placeholder="Воспользуйся меню 👇"
     )
 
 

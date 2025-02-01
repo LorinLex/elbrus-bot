@@ -4,7 +4,7 @@ from aiogram.types import CallbackQuery
 from aiogram.fsm.context import FSMContext
 from app.actons import EventActionEnum, send_event_action_to_group
 from app.dal.events import delete_event, get_event_by_id
-from app.handlers.events.utils import get_event_caption
+from app.utils import get_event_caption
 from app.kb import confirm_delete_inline_kb, main_kb
 from app.states import MainEventStates
 from app import bot

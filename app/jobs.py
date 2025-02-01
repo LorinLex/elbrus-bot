@@ -6,7 +6,7 @@ from aiogram import html
 from app.dal.chat import get_main_group_id
 from app.dal.events import get_event_by_id, get_notifying_event_list
 from app.dal.sport import get_week_stats
-from app.handlers.events.utils import get_event_caption
+from app.utils import get_event_caption
 from app.utils import in_elbrus_height
 from . import bot
 from aiogram.types import FSInputFile

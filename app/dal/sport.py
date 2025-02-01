@@ -47,8 +47,9 @@ async def get_week_stats(session: AsyncSession) -> list[SportStats]:
                 .label("sum_distance"))\
         .join(SportActivityModel, isouter=True)\
         .group_by(BoyModel.call_sign)\
-        .filter(or_(SportActivityModel.report_week == week,
-                    SportActivityModel.report_week.is_(None)))
+        .filter(or_(
+            SportActivityModel.report_week == week,
+        ))
 
     result = (await session.execute(week_reports)).all()
     return [SportStats(**row._mapping) for row in result]
@@ -67,7 +68,6 @@ async def get_month_stats(session: AsyncSession) -> list[SportStats]:
         .group_by(BoyModel.call_sign)\
         .filter(or_(
             func.strftime("%m", SportActivityModel.report_date) == str(month),
-            SportActivityModel.report_date.is_(None)
         ))
 
     result = (await session.execute(week_reports)).all()

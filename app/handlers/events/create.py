@@ -8,7 +8,7 @@ from app import bot
 from app.actons import EventActionEnum, send_event_action_to_group
 from app.dal import Boy
 from app.dal.events import Event, add_event, get_event_by_name
-from app.handlers.events.utils import get_event_caption
+from app.utils import get_event_caption
 from app.kb import confirm_inline_kb, \
     main_kb, stop_fsm_inline_kb
 from app.sheduler import shedule_new_event

@@ -7,6 +7,7 @@ from aiogram.types import Message, CallbackQuery, InaccessibleMessage
 
 from app import settings
 from app.dal import Boy
+from app.jokes import get_joke
 from app.kb import main_kb
 
 
@@ -45,6 +46,20 @@ async def fsm_stop_handler(call: CallbackQuery, state: FSMContext) -> None:
         text="Окей, ты вернулся в главное меню",
         reply_markup=main_kb(is_group=call.message.chat.type != "private")
     )
+
+
+@router.message(Command("joke"))
+@router.message(F.text == "😂 Вспомни анекдот!")
+async def joke_handler(message: Message) -> None:
+    source, joke = await get_joke()
+
+    if not joke:
+        await message.answer("Не могу вспомнить анекдот...")
+        return
+
+    await message.answer("Внимание, анекдот!\n\n"
+                         f"{joke}\n\n"
+                         f"Источник: {source}")
 
 
 @router.message()

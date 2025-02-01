@@ -6,7 +6,7 @@ from aiogram.types import Message, CallbackQuery
 from app import bot
 from app.actons import EventActionEnum, send_event_action_to_group
 from app.dal.events import update_event, get_event_by_id
-from app.handlers.events.utils import get_event_caption
+from app.utils import get_event_caption
 from app.kb import confirm_inline_kb, stop_fsm_inline_kb, \
     update_event_inline_kb
 from app.sheduler import modify_sheduled_event_date

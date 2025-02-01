@@ -15,6 +15,7 @@ from app.sheduler import start_sheduler
 async def set_commands():
     private_commands = [
         BotCommand(command='start', description='Старт'),
+        BotCommand(command='joke', description='Вспомнить анекдот'),
         BotCommand(command='add_sport_report',
                    description="Записать день Gym'а"),
         BotCommand(command='add_event',
@@ -31,6 +32,7 @@ async def set_commands():
 
     group_commands = [
         BotCommand(command='start', description='Старт'),
+        BotCommand(command='joke', description='Вспомнить анекдот'),
         BotCommand(command='show_events',
                    description="Посмотреть список событий"),
         BotCommand(command='get_week_stats',

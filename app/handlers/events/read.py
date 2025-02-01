@@ -4,7 +4,7 @@ from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, InaccessibleMessage
 from app.dal.events import get_event_list
-from app.handlers.events.utils import get_event_caption
+from app.utils import get_event_caption
 from app.kb import event_card_inline_kb
 from app.states import MainEventStates
 
